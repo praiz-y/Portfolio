@@ -1,0 +1,98 @@
+---
+// The biography below is deliberately limited to what's verifiable from the
+// decisions log: real stack breadth, the AI/ML and Web3 work, and the
+// annotation background. No employers, dates, or achievements are asserted —
+// those need to come from Praise.
+const tags = [
+  'Full-Stack',
+  'AI / ML',
+  'Web3',
+  'TypeScript',
+  'Solidity',
+  'Ex-annotator',
+];
+---
+
+<section class="section about" id="about">
+  <div class="container about-inner">
+    <div class="about-head reveal-left">
+      <p class="eyebrow mono">About</p>
+      <h2>Broad by choice,<br /><span class="italic-accent">not by accident.</span></h2>
+    </div>
+
+    <div class="about-body reveal-right">
+      <p>
+        I work across the whole stack — React and Next on the front, Node and
+        Postgres behind it, Solidity where the problem needs a chain, and Python
+        when there's a model involved. That range isn't a list of things I've
+        touched once; it's the shape of the work I take on.
+      </p>
+
+      <p>
+        Before I was writing the applications, I was annotating the data they
+        learn from — image, video, and text labelling for AI training sets. It's
+        the least visible thing I've done and probably the most useful: it's
+        where I learned how much of "AI-powered" is actually data quality, and
+        how quickly a model falls apart on inputs nobody thought to label.
+      </p>
+
+      <p>
+        I care most about the parts of a build that are hard to see — the
+        decisions that make something fast, accessible, and still maintainable a
+        year later.
+      </p>
+
+      <ul class="about-tags">
+        {tags.map((tag) => <li class="tag">{tag}</li>)}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about-inner {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .about-head h2 {
+    font-size: clamp(1.9rem, 4.2vw, 2.9rem);
+    margin-top: 1rem;
+  }
+
+  .about-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    max-width: 38rem;
+  }
+
+  .about-body p {
+    font-size: 1.04rem;
+    line-height: 1.75;
+    color: var(--ink);
+  }
+
+  .about-body p + p {
+    color: var(--ink-dim);
+  }
+
+  .about-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+  }
+
+  @media (max-width: 900px) {
+    .about-inner {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .about-body {
+      max-width: none;
+    }
+  }
+</style>

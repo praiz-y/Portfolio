@@ -1,0 +1,272 @@
+---
+import { Icon } from 'astro-icon/components';
+import iconSet from '@iconify-json/simple-icons/icons.json';
+
+// Icon marquee, kept from Real1 and revamped: two rows scrolling in opposite
+// directions, paused on hover, faded at both edges.
+//
+// Switched from Font Awesome to Simple Icons. FA Free has no Next.js,
+// Solidity, Prisma, Supabase or TensorFlow marks, so the old setup would have
+// silently rendered blanks for most of the real stack.
+//
+// Slugs are checked against the icon set before rendering. Astro-icon throws on
+// an unknown name, which would fail the whole build over one wrong slug — and
+// several Simple Icons slugs have been renamed over time (css3 -> css among
+// them). Anything missing degrades to a lettered tile instead.
+
+const set = iconSet as {
+  icons: Record<string, unknown>;
+  aliases?: Record<string, unknown>;
+};
+
+function hasIcon(slug: string) {
+  return slug in set.icons || (set.aliases ? slug in set.aliases : false);
+}
+
+/** "CSS3" -> "CS", "TanStack Query" -> "TQ", "Zustand" -> "ZU" */
+function initials(name: string) {
+  const words = name.split(/\s+/).filter((w) => /[a-z0-9]/i.test(w));
+  if (!words.length) return '?';
+  return (words.length > 1 ? words.slice(0, 2).map((w) => w[0]) : [words[0].slice(0, 2)])
+    .join('')
+    .toUpperCase();
+}
+
+type Entry = { name: string; slug: string };
+
+const rowOne: Entry[] = [
+  { name: 'HTML5', slug: 'html5' },
+  { name: 'CSS3', slug: 'css3' },
+  { name: 'JavaScript', slug: 'javascript' },
+  { name: 'TypeScript', slug: 'typescript' },
+  { name: 'React', slug: 'react' },
+  { name: 'Next.js', slug: 'nextdotjs' },
+  { name: 'Astro', slug: 'astro' },
+  { name: 'React Native', slug: 'react' },
+  { name: 'Tailwind CSS', slug: 'tailwindcss' },
+  { name: 'Zustand', slug: 'zustand' },
+  { name: 'TanStack Query', slug: 'reactquery' },
+  { name: 'TipTap', slug: 'tiptap' },
+  { name: 'Figma', slug: 'figma' },
+  { name: 'Git', slug: 'git' },
+  { name: 'GitHub', slug: 'github' },
+];
+
+const rowTwo: Entry[] = [
+  { name: 'Node.js', slug: 'nodedotjs' },
+  { name: 'Express', slug: 'express' },
+  { name: 'PostgreSQL', slug: 'postgresql' },
+  { name: 'MongoDB', slug: 'mongodb' },
+  { name: 'Supabase', slug: 'supabase' },
+  { name: 'SQLite', slug: 'sqlite' },
+  { name: 'Prisma', slug: 'prisma' },
+  { name: 'Drizzle', slug: 'drizzle' },
+  { name: 'TypeORM', slug: 'typeorm' },
+  { name: 'GraphQL', slug: 'graphql' },
+  { name: 'Redis', slug: 'redis' },
+  { name: 'Zod', slug: 'zod' },
+  { name: 'JWT', slug: 'jsonwebtokens' },
+  { name: 'Solidity', slug: 'solidity' },
+  { name: 'TensorFlow', slug: 'tensorflow' },
+  { name: 'Python', slug: 'python' },
+  { name: 'Streamlit', slug: 'streamlit' },
+  { name: 'Anaconda', slug: 'anaconda' },
+  { name: 'Docker', slug: 'docker' },
+  { name: 'Firebase', slug: 'firebase' },
+  { name: 'Cloudinary', slug: 'cloudinary' },
+  { name: 'Vercel', slug: 'vercel' },
+];
+---
+
+<section class="section skills" id="skills">
+  <div class="container">
+    <div class="section-header reveal-up">
+      <p class="eyebrow mono">Skills</p>
+      <h2>Tools I actually ship with</h2>
+      <p>
+        Full-stack web, AI/ML, and Web3 — plus the annotation and data-labelling
+        work that came before any of it.
+      </p>
+    </div>
+  </div>
+
+  <div class="marquee" data-marquee>
+    {
+      [
+        { row: rowOne, reverse: false },
+        { row: rowTwo, reverse: true },
+      ].map(({ row, reverse }) => (
+        <div class:list={['track', reverse && 'reverse']}>
+          {[...row, ...row].map((skill, i) => (
+            <div class="skill" aria-hidden={i >= row.length ? 'true' : undefined}>
+              <span class="mark">
+                {hasIcon(skill.slug) ? (
+                  <Icon name={`simple-icons:${skill.slug}`} width="24" height="24" />
+                ) : (
+                  <span class="monogram mono">{initials(skill.name)}</span>
+                )}
+              </span>
+              <span class="name">{skill.name}</span>
+            </div>
+          ))}
+        </div>
+      ))
+    }
+
+    <div class="fade left" aria-hidden="true"></div>
+    <div class="fade right" aria-hidden="true"></div>
+  </div>
+</section>
+
+<style>
+  .skills {
+    padding-bottom: 5rem;
+  }
+
+  .marquee {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    overflow: hidden;
+    /* Fade the rows out toward the section edges. */
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 7rem, #000 calc(100% - 7rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 7rem, #000 calc(100% - 7rem), transparent);
+  }
+
+  .track {
+    display: flex;
+    gap: 0.9rem;
+    width: max-content;
+    padding-inline: 0.45rem;
+    animation: scrollLeft 46s linear infinite;
+  }
+
+  .track.reverse {
+    animation: scrollRight 52s linear infinite;
+  }
+
+  /* Content is duplicated once, so -50% lands exactly on the seam. */
+  @keyframes scrollLeft {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes scrollRight {
+    from {
+      transform: translateX(-50%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .marquee:hover .track {
+    animation-play-state: paused;
+  }
+
+  /* --- tile ------------------------------------------------------------- */
+
+  .skill {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.7rem 1.05rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    white-space: nowrap;
+    transition: border-color var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+  }
+
+  .skill:hover {
+    border-color: var(--red);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mark {
+    display: grid;
+    place-content: center;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+  }
+
+  /* Simple Icons ship as single-colour fills — inherit the ink colour and let
+     the tile's hover state carry the accent instead of tinting every logo. */
+  .mark :global(svg) {
+    fill: var(--ink);
+    opacity: 0.82;
+  }
+
+  .monogram {
+    display: grid;
+    place-content: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--red);
+    border-radius: 5px;
+    color: var(--red);
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .name {
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  /* --- fades ------------------------------------------------------------ */
+
+  .fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 5rem;
+    pointer-events: none;
+  }
+
+  .fade.left {
+    left: 0;
+    background: linear-gradient(to right, var(--bg), transparent);
+  }
+
+  .fade.right {
+    right: 0;
+    background: linear-gradient(to left, var(--bg), transparent);
+  }
+
+  /* --- reduced motion --------------------------------------------------- */
+  /* Stop the scroll and let the rows wrap so every skill stays reachable.
+     The duplicated half is hidden — it only exists for the seamless loop. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+
+    .track {
+      flex-wrap: wrap;
+      width: auto;
+      animation: none;
+      justify-content: center;
+      padding-inline: var(--gutter);
+    }
+
+    .track .skill[aria-hidden='true'] {
+      display: none;
+    }
+
+    .fade {
+      display: none;
+    }
+  }
+</style>

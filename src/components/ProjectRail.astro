@@ -1,0 +1,386 @@
+---
+import { getCollection } from 'astro:content';
+
+// Horizontal rail, scrollable at every breakpoint. Categories are still shown
+// as a label on each card, but they no longer drive filtering — the pills are
+// out of v1, so the rail just reads the whole collection in `order`.
+const projects = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+
+/** "Iraq Dinar Meme Site" -> "ID" */
+function initials(title: string) {
+  return title
+    .split(/\s+/)
+    // Test the whole word, not word[0] — word[0] on an empty string is
+    // undefined, which stringifies to "undefined" and matches /[a-z]/.
+    .filter((word) => /[a-z0-9]/i.test(word))
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join('');
+}
+---
+
+<section class="section work" id="work">
+  <div class="container">
+    <div class="section-header reveal-up">
+      <p class="eyebrow mono">Selected work</p>
+      <h2>Four projects, in detail</h2>
+      <p>
+        Each one has a full write-up — the problem, what constrained it, and what
+        I'd do differently. Not just a screenshot and a link.
+      </p>
+    </div>
+  </div>
+
+  <div class="rail-viewport" data-rail>
+    <ul class="rail" data-rail-track tabindex="0" role="region" aria-label="Selected work — scroll horizontally">
+      {
+        projects.map((project, i) => (
+          <li class="rail-item">
+            <a class="card reveal-up" href={`/work/${project.id}`} style={`--delay:${i * 0.08}s`}>
+              <div class="cover" data-variant={i % 2 === 0 ? 'red' : 'yellow'}>
+                {project.data.coverImage ? (
+                  <img
+                    src={project.data.coverImage}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    width="640"
+                    height="400"
+                  />
+                ) : (
+                  <span class="monogram" aria-hidden="true">{initials(project.data.title)}</span>
+                )}
+
+                <span class="card-num mono">{String(i + 1).padStart(2, '0')}</span>
+
+                {project.data.placeholder && (
+                  <span class="draft-badge mono">Draft</span>
+                )}
+              </div>
+
+              <div class="body">
+                <span class="category mono">{project.data.category}</span>
+                <h3>{project.data.title}</h3>
+                <p>{project.data.summary}</p>
+
+                {project.data.stack.length > 0 && (
+                  <ul class="stack">
+                    {project.data.stack.slice(0, 4).map((tech) => (
+                      <li class="tag">{tech}</li>
+                    ))}
+                  </ul>
+                )}
+
+                <span class="read-more">
+                  Read case study <span aria-hidden="true">→</span>
+                </span>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="rail-fade left" aria-hidden="true"></div>
+    <div class="rail-fade right" aria-hidden="true"></div>
+  </div>
+
+  <div class="container">
+    <div class="rail-controls">
+      <button class="rail-btn" type="button" data-rail-prev aria-label="Previous projects">
+        <span aria-hidden="true">←</span>
+      </button>
+
+      <div class="progress" aria-hidden="true">
+        <span class="progress-bar" data-rail-progress></span>
+      </div>
+
+      <button class="rail-btn" type="button" data-rail-next aria-label="Next projects">
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .work {
+    overflow: hidden; /* rail bleeds to the viewport edge */
+  }
+
+  /* --- rail ------------------------------------------------------------- */
+
+  .rail-viewport {
+    position: relative;
+    margin-top: 1rem;
+  }
+
+  .rail {
+    display: flex;
+    gap: 1.4rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    /* Full-bleed: the rail runs edge to edge but the first card lines up with
+       the container gutter, so it doesn't look accidentally misaligned. */
+    padding: 0.5rem max(var(--gutter), calc((100vw - var(--maxw)) / 2 + var(--gutter)));
+    scrollbar-width: none;
+    cursor: grab;
+  }
+
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rail[data-dragging] {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+
+  .rail-item {
+    flex: 0 0 auto;
+    width: clamp(17rem, 30vw, 22rem);
+    scroll-snap-align: start;
+  }
+
+  /* --- card ------------------------------------------------------------- */
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--dur) var(--ease-out),
+      box-shadow var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-strong);
+  }
+
+  .cover {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    display: grid;
+    place-content: center;
+    overflow: hidden;
+  }
+
+  .cover[data-variant='red'] {
+    background:
+      radial-gradient(120% 120% at 12% 8%, var(--red-wash-2), transparent 62%),
+      linear-gradient(150deg, #f6ece0, #efe4d4);
+  }
+
+  .cover[data-variant='yellow'] {
+    background:
+      radial-gradient(120% 120% at 88% 10%, rgba(255, 215, 90, 0.4), transparent 62%),
+      linear-gradient(150deg, #f7f1e2, #efe6d2);
+  }
+
+  .cover img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s var(--ease-out);
+  }
+
+  .card:hover .cover img {
+    transform: scale(1.04);
+  }
+
+  /* Monogram tile — stands in for a missing screenshot. Deliberately reads as
+     a placeholder rather than imitating a real screenshot. */
+  .monogram {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 7vw, 4.5rem);
+    font-weight: 600;
+    font-style: italic;
+    color: var(--red);
+    opacity: 0.24;
+    user-select: none;
+  }
+
+  .card-num {
+    position: absolute;
+    top: 0.85rem;
+    left: 0.85rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(250, 247, 242, 0.86);
+    color: var(--ink);
+    font-size: 0.6rem;
+    backdrop-filter: blur(4px);
+  }
+
+  .draft-badge {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 100px;
+    background: var(--yellow);
+    border: 1px solid var(--ring);
+    color: var(--ink);
+    font-size: 0.55rem;
+    font-weight: 700;
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.55rem;
+    padding: 1.25rem 1.25rem 1.4rem;
+  }
+
+  .category {
+    font-size: 0.58rem;
+    color: var(--red);
+  }
+
+  .body h3 {
+    font-size: 1.28rem;
+    font-weight: 600;
+  }
+
+  .body p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--ink-dim);
+  }
+
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+  }
+
+  .stack .tag {
+    font-size: 0.58rem;
+    padding: 0.22rem 0.6rem;
+  }
+
+  .read-more {
+    margin-top: auto;
+    padding-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--red);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .read-more span {
+    transition: transform var(--dur) var(--ease-out);
+  }
+
+  .card:hover .read-more span {
+    transform: translateX(4px);
+  }
+
+  /* --- edge fades ------------------------------------------------------- */
+
+  .rail-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4rem;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity var(--dur) var(--ease-out);
+  }
+
+  .rail-fade.left {
+    left: 0;
+    background: linear-gradient(to right, var(--bg), transparent);
+  }
+
+  .rail-fade.right {
+    right: 0;
+    background: linear-gradient(to left, var(--bg), transparent);
+  }
+
+  /* main.js toggles these so the fade never covers a card that's fully in view
+     at the start or end of the rail. */
+  .rail-fade[data-hidden] {
+    opacity: 0;
+  }
+
+  /* --- controls --------------------------------------------------------- */
+
+  .rail-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .rail-btn {
+    flex: 0 0 auto;
+    display: grid;
+    place-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    color: var(--ink);
+    transition: background var(--dur) var(--ease-out),
+      color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out),
+      opacity var(--dur) var(--ease-out);
+  }
+
+  .rail-btn:hover:not(:disabled) {
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--surface);
+  }
+
+  .rail-btn:disabled {
+    opacity: 0.32;
+    cursor: not-allowed;
+  }
+
+  .progress {
+    position: relative;
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  /* Positioned by main.js as a percentage of the container: width is the
+     visible fraction, left is how far through the rail we are. Percentages of
+     the same box, so there's no transform maths to drift. */
+  .progress-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--red);
+    border-radius: 2px;
+    transition: left var(--dur) var(--ease-out), width var(--dur) var(--ease-out);
+  }
+
+  @media (max-width: 640px) {
+    .rail-item {
+      width: min(78vw, 20rem);
+    }
+
+    .rail-fade {
+      width: 2rem;
+    }
+  }
+</style>

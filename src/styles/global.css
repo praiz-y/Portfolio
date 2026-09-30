@@ -1,0 +1,343 @@
+/* ==========================================================================
+   Global base — reset, typography, texture, shared primitives
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Header is fixed — offset anchor jumps so headings clear it. */
+  scroll-padding-top: 6rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  font-size: 1rem;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- page texture ----------------------------------------------------- */
+/* Faint dotted grid, faded at the edges, with soft red/yellow glows in the
+   corners. Replaces the old dark "animated gradient mesh" — that concept
+   stopped making sense once the base went light. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(22, 20, 15, 0.09) 1px, transparent 0);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 40%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 40%, #000 40%, transparent 100%);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(38rem 30rem at 8% -6%, rgba(171, 21, 9, 0.1), transparent 62%),
+    radial-gradient(32rem 26rem at 102% 12%, rgba(255, 215, 90, 0.22), transparent 60%),
+    radial-gradient(30rem 26rem at 50% 106%, rgba(171, 21, 9, 0.06), transparent 62%);
+}
+
+/* Everything real sits above the two texture layers. */
+header,
+main,
+footer {
+  position: relative;
+  z-index: 1;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* --- typography ------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-optical-sizing: auto;
+}
+
+/* Space Mono label — the one deliberate continuity thread from the old brand */
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.italic-accent {
+  font-style: italic;
+  color: var(--red);
+}
+
+::selection {
+  background: var(--red);
+  color: var(--surface);
+}
+
+/* --- focus ------------------------------------------------------------ */
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -140%);
+  z-index: 200;
+  background: var(--red);
+  color: var(--surface);
+  padding: 0.7rem 1.2rem;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  font-weight: 700;
+  transition: transform var(--dur) var(--ease-out);
+}
+.skip-link:focus {
+  transform: translate(-50%, 0);
+}
+
+/* --- layout ----------------------------------------------------------- */
+
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: 7rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding-block: 4.5rem;
+  }
+}
+
+/* --- section header --------------------------------------------------- */
+
+.section-header {
+  margin-bottom: 3rem;
+  max-width: 44rem;
+}
+
+.section-header .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.section-header .eyebrow::before {
+  content: '';
+  width: 2rem;
+  height: 1px;
+  background: var(--red);
+}
+
+.section-header h2 {
+  font-size: clamp(1.9rem, 4.2vw, 2.9rem);
+}
+
+.section-header p {
+  margin-top: 0.9rem;
+  color: var(--ink-dim);
+  font-size: 1.02rem;
+  max-width: 38rem;
+}
+
+/* --- buttons ---------------------------------------------------------- */
+/* Ported from Real1's .btn, restyled: the old version slid a grey panel in
+   from the left on hover. Kept the sliding-fill mechanic, recoloured to the
+   red pair so the motion language survives the palette change. */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  isolation: isolate;
+  white-space: nowrap;
+  transition: color var(--dur) var(--ease-out), transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  transform: translateX(-101%);
+  transition: transform var(--dur) var(--ease-out);
+  z-index: -1;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:hover::before {
+  transform: translateX(0);
+}
+
+/* primary — solid red, fills darker red on hover */
+.btn-primary {
+  background: var(--red);
+  color: var(--surface);
+}
+.btn-primary::before {
+  background: var(--ink);
+}
+
+/* secondary — outlined, fills red on hover */
+.btn-secondary {
+  border: 1.5px solid var(--border-strong);
+  color: var(--ink);
+}
+.btn-secondary::before {
+  background: var(--red);
+}
+.btn-secondary:hover {
+  color: var(--surface);
+  border-color: var(--red);
+}
+
+/* small variant for in-card actions */
+.btn-sm {
+  padding: 0.5rem 0.95rem;
+  font-size: 0.8rem;
+}
+
+/* --- scroll reveal ---------------------------------------------------- */
+/* Ported from Real1. IntersectionObserver adds .visible; see main.js. */
+
+.reveal-up,
+.reveal-left,
+.reveal-right {
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+  transition-delay: var(--delay, 0s);
+  will-change: opacity, transform;
+}
+
+.reveal-up {
+  transform: translateY(28px);
+}
+.reveal-left {
+  transform: translateX(-28px);
+}
+.reveal-right {
+  transform: translateX(28px);
+}
+
+.reveal-up.visible,
+.reveal-left.visible,
+.reveal-right.visible {
+  opacity: 1;
+  transform: translate(0);
+}
+
+/* --- tag -------------------------------------------------------------- */
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  background: var(--ink-wash);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 0.3rem 0.75rem;
+}
+
+/* --- reduced motion --------------------------------------------------- */
+/* The headline bounce, scroll reveals, marquee and cursor are all decoration.
+   Anyone who has asked the OS for less motion gets a static, fully usable
+   page instead — nothing here is load-bearing. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal-up,
+  .reveal-left,
+  .reveal-right {
+    opacity: 1;
+    transform: none;
+  }
+}

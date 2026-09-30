@@ -1,0 +1,253 @@
+---
+import { Icon } from 'astro-icon/components';
+
+// Form endpoint is carried over from Real1. VERIFY THIS IS YOURS before
+// launch — if that Formspree form belongs to whoever built the old site,
+// submissions go to them, not to you.
+
+const email = 'praisekaye13@gmail.com';
+
+const details = [
+  { label: 'Email', value: email, href: `mailto:${email}` },
+  { label: 'Location', value: 'Remote' },
+  { label: 'Availability', value: 'Open to opportunities' },
+];
+
+// Handles carried over from Real1. Note t.me/Varian_t still carries the old
+// "Variant" persona name — intentional per the decisions log, but worth a look.
+const socials = [
+  { name: 'X', href: 'https://x.com/praiz_y', icon: 'simple-icons:x' },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/in/praise-oga-2a8ba21ba/', icon: 'simple-icons:linkedin' },
+  { name: 'WhatsApp', href: 'https://wa.link/od3nvb', icon: 'simple-icons:whatsapp' },
+  { name: 'Telegram', href: 'https://t.me/Varian_t', icon: 'simple-icons:telegram' },
+];
+---
+
+<section class="section contact" id="contact">
+  <div class="container">
+    <div class="section-header reveal-up">
+      <p class="eyebrow mono">Contact</p>
+      <h2>Let's build something</h2>
+      <p>
+        Open to full-time roles and freelance work. If you've read a case study
+        and want to talk about how I'd approach yours, that's the best place to
+        start.
+      </p>
+    </div>
+
+    <div class="contact-grid">
+      <form
+        class="contact-form reveal-left"
+        action="https://formspree.io/f/xovdvrja"
+        method="post"
+      >
+        <div class="field">
+          <label class="mono" for="name">Name</label>
+          <input id="name" name="name" type="text" placeholder="Your name" required autocomplete="name" />
+        </div>
+
+        <div class="field">
+          <label class="mono" for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@company.com" required autocomplete="email" />
+        </div>
+
+        <div class="field">
+          <label class="mono" for="message">Message</label>
+          <textarea id="message" name="message" rows="5" placeholder="What are you building?" required></textarea>
+        </div>
+
+        <!-- Formspree honeypot — bots fill this, humans never see it. -->
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" class="gotcha" />
+
+        <button class="btn btn-primary" type="submit">
+          Send message <span aria-hidden="true">→</span>
+        </button>
+      </form>
+
+      <aside class="contact-aside reveal-right">
+        <dl class="details">
+          {
+            details.map((detail) => (
+              <div class="detail">
+                <dt class="mono">{detail.label}</dt>
+                <dd>
+                  {detail.href ? <a href={detail.href}>{detail.value}</a> : detail.value}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        <div class="socials">
+          <p class="mono">Elsewhere</p>
+          <ul>
+            {
+              socials.map((social) => (
+                <li>
+                  <a href={social.href} target="_blank" rel="noopener me" aria-label={social.name}>
+                    <Icon name={social.icon} width="18" height="18" />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  /* --- form ------------------------------------------------------------- */
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .field label {
+    font-size: 0.6rem;
+  }
+
+  .field input,
+  .field textarea {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: 0.95rem;
+    resize: vertical;
+    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  }
+
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: color-mix(in srgb, var(--ink-dim) 65%, transparent);
+  }
+
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px var(--red-wash-2);
+  }
+
+  /* Off-screen rather than display:none — some bots skip hidden fields. */
+  .gotcha {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  .contact-form .btn {
+    align-self: flex-start;
+    margin-top: 0.25rem;
+  }
+
+  /* --- aside ------------------------------------------------------------ */
+
+  .contact-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding: 1.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .detail dt {
+    font-size: 0.58rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .detail dd {
+    font-size: 0.95rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .detail a {
+    transition: color var(--dur-fast) ease;
+  }
+
+  .detail a:hover {
+    color: var(--red);
+  }
+
+  .socials {
+    padding-top: 1.4rem;
+    border-top: 1px dashed var(--border-strong);
+  }
+
+  .socials p {
+    font-size: 0.58rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .socials ul {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .socials a {
+    display: grid;
+    place-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease,
+      transform var(--dur-fast) var(--ease-out);
+  }
+
+  .socials a :global(svg) {
+    fill: var(--ink-dim);
+    transition: fill var(--dur-fast) ease;
+  }
+
+  .socials a:hover {
+    border-color: var(--red);
+    background: var(--red-wash);
+    transform: translateY(-2px);
+  }
+
+  .socials a:hover :global(svg) {
+    fill: var(--red);
+  }
+
+  @media (max-width: 900px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .contact-form .btn {
+      align-self: stretch;
+      justify-content: center;
+    }
+  }
+</style>

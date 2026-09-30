@@ -1,0 +1,430 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+
+  // Neighbour links wrap around, so the last project points back at the first
+  // rather than dead-ending the reader.
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: {
+      project,
+      next: projects[(i + 1) % projects.length],
+    },
+  }));
+}
+
+const { project, next } = Astro.props;
+const { Content } = await render(project);
+const { title, summary, category, year, role, stack, liveUrl, repoUrl, results, coverImage, placeholder } =
+  project.data;
+
+const meta = [
+  { label: 'Year', value: String(year) },
+  { label: 'Role', value: role },
+  { label: 'Category', value: category },
+];
+---
+
+<Base title={`${title} — Praise Oga`} description={summary}>
+  <article class="case">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/#work">
+          <span aria-hidden="true">←</span> Back to Work
+        </a>
+      </nav>
+
+      {
+        placeholder && (
+          <p class="draft-notice mono">
+            Draft — this entry still contains scaffolding copy and must be replaced before launch.
+          </p>
+        )
+      }
+
+      <header class="case-header">
+        <p class="eyebrow mono">{category}</p>
+        <h1>{title}</h1>
+        <p class="lede">{summary}</p>
+      </header>
+
+      {
+        coverImage && (
+          <figure class="cover">
+            <img src={coverImage} alt={`${title} screenshot`} width="1200" height="750" />
+          </figure>
+        )
+      }
+
+      <dl class="meta">
+        {
+          meta.map((item) => (
+            <div>
+              <dt class="mono">{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      {
+        (liveUrl || repoUrl) && (
+          <div class="links">
+            {liveUrl && (
+              <a class="btn btn-primary btn-sm" href={liveUrl} target="_blank" rel="noopener">
+                Visit live site <span aria-hidden="true">↗</span>
+              </a>
+            )}
+            {repoUrl && (
+              <a class="btn btn-secondary btn-sm" href={repoUrl} target="_blank" rel="noopener">
+                View code <span aria-hidden="true">↗</span>
+              </a>
+            )}
+          </div>
+        )
+      }
+
+      {
+        results.length > 0 && (
+          <dl class="results">
+            {results.map((result) => (
+              <div>
+                <dt class="mono">{result.label}</dt>
+                <dd>{result.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+
+      <!-- Section order is fixed: Problem → Constraints → Decisions → The Struggle → Limitations -->
+      <div class="prose">
+        <Content />
+      </div>
+
+      {
+        stack.length > 0 && (
+          <footer class="stack-block">
+            <p class="mono">Built with</p>
+            <ul>
+              {stack.map((tech) => (
+                <li class="tag">{tech}</li>
+              ))}
+            </ul>
+          </footer>
+        )
+      }
+
+      <a class="next-project" href={`/work/${next.id}`}>
+        <span class="mono">Next project</span>
+        <span class="next-title">{next.data.title}</span>
+        <span class="next-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .case {
+    padding-block: 8rem 6rem;
+  }
+
+  .breadcrumb {
+    margin-bottom: 2.5rem;
+  }
+
+  .breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink-dim);
+    transition: color var(--dur-fast) ease, gap var(--dur) var(--ease-out);
+  }
+
+  .breadcrumb a:hover {
+    color: var(--red);
+    gap: 0.75rem;
+  }
+
+  .draft-notice {
+    margin-bottom: 1.5rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--ring);
+    border-radius: var(--radius-sm);
+    background: var(--yellow);
+    color: var(--ink);
+    font-size: 0.6rem;
+    line-height: 1.5;
+  }
+
+  /* --- header ----------------------------------------------------------- */
+
+  .case-header {
+    max-width: 46rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .case-header .eyebrow {
+    color: var(--red);
+    margin-bottom: 0.85rem;
+  }
+
+  .case-header h1 {
+    font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+    letter-spacing: -0.025em;
+  }
+
+  .lede {
+    margin-top: 1.1rem;
+    font-size: 1.12rem;
+    line-height: 1.65;
+    color: var(--ink-dim);
+  }
+
+  .cover {
+    margin-bottom: 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .cover img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* --- meta / results --------------------------------------------------- */
+
+  .meta,
+  .results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1.25rem;
+    padding-block: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .meta {
+    margin-bottom: 1.75rem;
+  }
+
+  .results {
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+
+  .meta dt,
+  .results dt {
+    font-size: 0.58rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .meta dd,
+  .results dd {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .results dd {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--red);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+  }
+
+  /* --- prose ------------------------------------------------------------ */
+
+  .prose {
+    max-width: 44rem;
+  }
+
+  /* :global — this markup comes from the markdown render, so it carries no
+     scope attribute for Astro's scoped styles to match against. */
+  .prose :global(h2) {
+    font-size: 1.5rem;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .prose :global(h2:first-child) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .prose :global(p) {
+    margin-bottom: 1.15rem;
+    font-size: 1.04rem;
+    line-height: 1.75;
+    color: var(--ink);
+  }
+
+  .prose :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin-bottom: 1.15rem;
+    padding-left: 1.2rem;
+  }
+
+  .prose :global(li) {
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+  }
+
+  .prose :global(ul li) {
+    list-style: none;
+    position: relative;
+  }
+
+  .prose :global(ul li)::before {
+    content: '';
+    position: absolute;
+    left: -1.05rem;
+    top: 0.7em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+
+  .prose :global(ol) {
+    list-style: decimal;
+  }
+
+  .prose :global(strong) {
+    font-weight: 700;
+  }
+
+  .prose :global(em) {
+    font-style: italic;
+  }
+
+  .prose :global(a) {
+    color: var(--red);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    background: var(--ink-wash);
+  }
+
+  .prose :global(pre) {
+    margin-bottom: 1.15rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    overflow-x: auto;
+  }
+
+  .prose :global(pre code) {
+    padding: 0;
+    background: none;
+  }
+
+  .prose :global(blockquote) {
+    margin-bottom: 1.15rem;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--red);
+    color: var(--ink-dim);
+    font-style: italic;
+  }
+
+  /* --- stack / next ----------------------------------------------------- */
+
+  .stack-block {
+    margin-top: 3.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .stack-block p {
+    font-size: 0.58rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .stack-block ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .next-project {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 4rem;
+    padding: 1.5rem 1.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    transition: border-color var(--dur) var(--ease-out),
+      box-shadow var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+  }
+
+  .next-project:hover {
+    border-color: var(--red);
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+  }
+
+  .next-project .mono {
+    font-size: 0.58rem;
+    flex: 0 0 auto;
+  }
+
+  .next-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .next-arrow {
+    margin-left: auto;
+    color: var(--red);
+    transition: transform var(--dur) var(--ease-out);
+  }
+
+  .next-project:hover .next-arrow {
+    transform: translateX(5px);
+  }
+
+  @media (max-width: 600px) {
+    .case {
+      padding-block: 7rem 4rem;
+    }
+
+    .next-project {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+
+    .next-arrow {
+      display: none;
+    }
+  }
+</style>

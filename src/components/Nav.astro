@@ -1,0 +1,304 @@
+---
+// Root-relative anchors throughout so the same nav works on the homepage and
+// on case-study pages. Desktop: blurred fixed bar, plain links, then the
+// Resume / Let's Talk pair pulled out as distinct buttons.
+// Mobile: fullscreen overlay — not a dropdown under the header.
+
+const links = [
+  { href: '/#top', label: 'Home' },
+  { href: '/#about', label: 'About' },
+  { href: '/#work', label: 'Work' },
+  { href: '/#skills', label: 'Skills' },
+];
+---
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="wordmark" href="/#top" aria-label="Praise Oga — home">
+      Praise Oga<span class="dot">.</span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="Primary">
+      <ul>
+        {
+          links.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="nav-actions">
+        <a class="btn btn-secondary btn-sm" href="/resume.pdf" target="_blank" rel="noopener">
+          Resume
+        </a>
+        <a class="btn btn-primary btn-sm" href="/#contact">Let's Talk</a>
+      </div>
+    </nav>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+      <span class="bars" aria-hidden="true"><i></i><i></i></span>
+      <span class="cross" aria-hidden="true"><i></i><i></i></span>
+    </button>
+  </div>
+</header>
+
+<!-- Fullscreen mobile overlay -->
+<div class="overlay" id="mobile-menu" data-overlay hidden>
+  <nav aria-label="Mobile">
+    <ul>
+      {
+        links.map((link) => (
+          <li style={`--i:${links.indexOf(link)}`}>
+            <a href={link.href}>{link.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <div class="overlay-actions">
+    <a class="btn btn-secondary" href="/resume.pdf" target="_blank" rel="noopener">Resume</a>
+    <a class="btn btn-primary" href="/#contact">Let's Talk</a>
+  </div>
+</div>
+
+<style>
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    background: rgba(250, 247, 242, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+  }
+
+  /* main.js sets data-scrolled once the page moves. */
+  :global(html[data-scrolled='true']) .site-header {
+    border-bottom-color: var(--border);
+    background: rgba(250, 247, 242, 0.94);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0.9rem var(--gutter);
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .wordmark .dot {
+    color: var(--red);
+  }
+
+  .desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 2.2rem;
+  }
+
+  .desktop-nav ul {
+    display: flex;
+    gap: 1.9rem;
+  }
+
+  .desktop-nav ul a {
+    position: relative;
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding-block: 0.35rem;
+    color: var(--ink);
+    transition: color var(--dur) var(--ease-out);
+  }
+
+  /* Underline grows from the left — kept from Real1. */
+  .desktop-nav ul a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 1.5px;
+    width: 0;
+    background: var(--red);
+    transition: width var(--dur) var(--ease-out);
+  }
+
+  .desktop-nav ul a:hover {
+    color: var(--red);
+  }
+
+  .desktop-nav ul a:hover::after {
+    width: 100%;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  /* --- menu toggle (mobile only) ---------------------------------------- */
+
+  .menu-toggle {
+    display: none;
+    position: relative;
+    width: 44px;
+    height: 44px;
+    margin-right: -0.5rem;
+    z-index: 120;
+  }
+
+  .menu-toggle .bars,
+  .menu-toggle .cross {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 6px;
+    transition: opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur) var(--ease-out);
+  }
+
+  .menu-toggle i {
+    display: block;
+    width: 22px;
+    height: 1.5px;
+    background: var(--ink);
+    transition: transform var(--dur) var(--ease-out), background var(--dur-fast) ease;
+  }
+
+  .menu-toggle .cross i {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+  }
+
+  .menu-toggle .cross i:first-child {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .menu-toggle .cross i:last-child {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
+  .menu-toggle .cross {
+    opacity: 0;
+    transform: rotate(-90deg);
+  }
+
+  :global(html[data-menu='open']) .menu-toggle .bars {
+    opacity: 0;
+    transform: rotate(90deg);
+  }
+
+  :global(html[data-menu='open']) .menu-toggle .cross {
+    opacity: 1;
+    transform: rotate(0deg);
+  }
+
+  /* --- overlay ---------------------------------------------------------- */
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 6rem var(--gutter) 3rem;
+    background: var(--bg);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity var(--dur) var(--ease-out), visibility var(--dur) var(--ease-out);
+  }
+
+  .overlay[hidden] {
+    display: none;
+  }
+
+  :global(html[data-menu='open']) .overlay {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .overlay ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  /* Staggered entrance — same motion language as the hero word bounce. */
+  .overlay li {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.5s var(--ease-spring), transform 0.5s var(--ease-spring);
+    transition-delay: calc(var(--i) * 70ms + 80ms);
+  }
+
+  :global(html[data-menu='open']) .overlay li {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .overlay li a {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 11vw, 3rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  .overlay li a:hover {
+    color: var(--red);
+  }
+
+  .overlay-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+    transition-delay: calc(var(--i, 4) * 70ms + 140ms);
+  }
+
+  :global(html[data-menu='open']) .overlay-actions {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .overlay-actions .btn {
+    justify-content: center;
+    padding-block: 1rem;
+  }
+
+  @media (max-width: 900px) {
+    .desktop-nav {
+      display: none;
+    }
+    .menu-toggle {
+      display: block;
+    }
+  }
+
+  @media (min-width: 901px) {
+    .overlay {
+      display: none;
+    }
+  }
+</style>

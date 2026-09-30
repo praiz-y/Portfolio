@@ -1,0 +1,46 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p class="mono">© {year} Praise Oga</p>
+    <p class="built mono">
+      Built with Astro · <a href="#top">Back to top ↑</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding-block: 1.75rem;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding-inline: var(--gutter);
+  }
+
+  .site-footer a {
+    color: var(--ink-dim);
+    transition: color var(--dur-fast) ease;
+  }
+
+  .site-footer a:hover {
+    color: var(--red);
+  }
+
+  @media (max-width: 480px) {
+    .footer-inner {
+      justify-content: center;
+      text-align: center;
+    }
+  }
+</style>

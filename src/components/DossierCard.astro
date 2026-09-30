@@ -1,0 +1,275 @@
+---
+// The "dossier" ID card, displayed inside a pure-CSS laptop frame.
+// Ticket-stub construction: red header band, yellow status stamp overlapping
+// the band's bottom edge, dashed perforation, then a 2-column field grid.
+// Qualitative info only — no year/project counts, per the no-stats decision.
+
+const fields = [
+  { label: 'Location', value: 'Remote' },
+  { label: 'Specialty', value: 'Full-stack · AI · Web3' },
+];
+
+const email = 'praisekaye13@gmail.com';
+---
+
+<div class="laptop" aria-hidden="false">
+  <div class="lid">
+    <div class="topbar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="url mono">praiseoga.com</span>
+    </div>
+
+    <div class="screen">
+      <article class="dossier">
+        <header class="band">
+          <span class="initials" aria-hidden="true">PO</span>
+          <div class="identity">
+            <h3>Praise Oga</h3>
+            <p class="mono">Full-Stack Developer</p>
+          </div>
+        </header>
+
+        <span class="stamp mono">Open to work</span>
+
+        <div class="perforation" aria-hidden="true"></div>
+
+        <dl class="fields">
+          {
+            fields.map((field) => (
+              <div class="field">
+                <dt class="mono">{field.label}</dt>
+                <dd>{field.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        <a class="email" href={`mailto:${email}`}>
+          <span class="mono">Email</span>
+          <span class="address">{email}</span>
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      </article>
+    </div>
+  </div>
+
+  <div class="base" aria-hidden="true"><span></span></div>
+  <span class="camera" aria-hidden="true"></span>
+</div>
+
+<style>
+  .laptop {
+    position: relative;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+
+  /* --- lid / bezel ------------------------------------------------------ */
+
+  .lid {
+    position: relative;
+    border-radius: 14px 14px 4px 4px;
+    padding: 0.75rem;
+    background: linear-gradient(160deg, #2a2620, #1a1712 60%);
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.15rem 0.6rem;
+  }
+
+  .topbar .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(250, 247, 242, 0.22);
+  }
+
+  .topbar .dot:first-child {
+    background: rgba(201, 42, 28, 0.75);
+  }
+
+  .topbar .url {
+    margin-left: auto;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: none;
+    color: rgba(250, 247, 242, 0.42);
+  }
+
+  .screen {
+    border-radius: 5px;
+    background: var(--surface);
+    padding: 0.9rem;
+    overflow: hidden;
+  }
+
+  /* --- the card --------------------------------------------------------- */
+
+  .dossier {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .band {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.15rem 1.15rem 1.5rem;
+    background: var(--red);
+    color: var(--surface);
+  }
+
+  .initials {
+    flex: 0 0 auto;
+    display: grid;
+    place-content: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    border-radius: 50%;
+    border: 1.5px solid rgba(250, 247, 242, 0.5);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .identity h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--surface);
+  }
+
+  .identity p {
+    color: rgba(250, 247, 242, 0.78);
+    font-size: 0.63rem;
+    margin-top: 0.15rem;
+  }
+
+  /* Yellow status stamp, overlapping the band's bottom edge. The pale fill is
+     low-contrast on its own, so it carries the thin dark ring. */
+  .stamp {
+    position: relative;
+    display: inline-block;
+    margin: -0.85rem 0 0 1.15rem;
+    padding: 0.32rem 0.7rem;
+    border-radius: 100px;
+    background: var(--yellow);
+    border: 1px solid var(--ring);
+    color: var(--ink);
+    font-size: 0.6rem;
+    font-weight: 700;
+  }
+
+  .perforation {
+    height: 1px;
+    margin: 1rem 0 0;
+    background-image: linear-gradient(to right, var(--border-strong) 55%, transparent 55%);
+    background-size: 9px 1px;
+  }
+
+  .fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    padding: 1.1rem 1.15rem 0.4rem;
+  }
+
+  .field dt {
+    font-size: 0.58rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .field dd {
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .email {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.9rem 1.15rem 1.15rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed var(--border-strong);
+  }
+
+  .email .mono {
+    font-size: 0.58rem;
+    flex: 0 0 auto;
+  }
+
+  .email .address {
+    font-size: 0.8rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    transition: color var(--dur-fast) ease;
+  }
+
+  .email .arrow {
+    margin-left: auto;
+    color: var(--red);
+    font-size: 0.9rem;
+    transition: transform var(--dur) var(--ease-out);
+  }
+
+  .email:hover .address {
+    color: var(--red);
+  }
+
+  .email:hover .arrow {
+    transform: translate(2px, -2px);
+  }
+
+  /* --- keyboard deck ---------------------------------------------------- */
+
+  .base {
+    position: relative;
+    height: 0.75rem;
+    margin-inline: -1.5rem;
+    border-radius: 0 0 10px 10px;
+    background: linear-gradient(180deg, #221e19, #14110d);
+  }
+
+  /* The lip that reads as the deck's front edge. */
+  .base span {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22%;
+    height: 3px;
+    border-radius: 0 0 4px 4px;
+    background: rgba(250, 247, 242, 0.14);
+  }
+
+  .camera {
+    position: absolute;
+    top: 1.05rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(250, 247, 242, 0.25);
+    z-index: 2;
+  }
+
+  /* Slight lift on hover, driven from the hero's wrapper. */
+  @media (max-width: 900px) {
+    .laptop {
+      max-width: 26rem;
+    }
+  }
+</style>

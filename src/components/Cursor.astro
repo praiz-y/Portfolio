@@ -1,0 +1,68 @@
+---
+// Custom cursor, ported from Real1. Two elements: a solid dot that tracks the
+// pointer exactly and a lagging ring. Grows over interactive targets.
+// Hidden entirely on touch devices and under prefers-reduced-motion.
+---
+
+<div class="cursor" data-cursor aria-hidden="true"></div>
+<div class="cursor-follower" data-cursor-follower aria-hidden="true"></div>
+
+<style>
+  .cursor,
+  .cursor-follower {
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+
+  .cursor {
+    width: 8px;
+    height: 8px;
+    background: var(--red);
+    transition: width var(--dur-fast) var(--ease-out),
+      height var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+  }
+
+  .cursor-follower {
+    width: 30px;
+    height: 30px;
+    border: 1.5px solid var(--red);
+    opacity: 0.5;
+    z-index: 9998;
+    transition: left 0.09s ease, top 0.09s ease, width var(--dur-fast) var(--ease-out),
+      height var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+  }
+
+  /* Driven by main.js toggling data-state on <html>. */
+  :global(html[data-cursor-state='active']) .cursor {
+    width: 14px;
+    height: 14px;
+    background: var(--ink);
+  }
+
+  :global(html[data-cursor-state='active']) .cursor-follower {
+    width: 48px;
+    height: 48px;
+    opacity: 0.25;
+  }
+
+  /* Pointer-coarse = touch. Real1 hid these only under 900px, which left the
+     cursor running on tablets and touch laptops at desktop widths. */
+  @media (pointer: coarse), (hover: none) {
+    .cursor,
+    .cursor-follower {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cursor,
+    .cursor-follower {
+      display: none;
+    }
+  }
+</style>

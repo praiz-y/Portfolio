@@ -1,0 +1,236 @@
+---
+import DossierCard from './DossierCard.astro';
+
+// Locked positioning statement. Split into tokens so the Real1 word-by-word
+// bounce-in can drive each word from a single --i custom property rather than
+// the hardcoded nth-child delays the original used.
+const headline = [
+  { t: 'I' },
+  { t: 'build' },
+  { t: 'scalable' },
+  { t: 'web' },
+  { t: 'applications,' },
+  { t: 'AI-powered' },
+  { t: 'systems,' },
+  { t: 'and' },
+  { t: 'decentralized' },
+  { t: 'blockchain', accent: true },
+  { t: 'solutions', accent: true },
+  { t: '—' },
+  { t: 'from' },
+  { t: 'React' },
+  { t: 'interfaces' },
+  { t: 'to' },
+  { t: 'Solidity' },
+  { t: 'smart' },
+  { t: 'contracts.' },
+];
+---
+
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <h1 class="headline">
+        {
+          headline.map((word, i) => (
+            <span
+              class:list={['word', word.accent && 'accent']}
+              style={`--i:${i}`}
+            >
+              {word.t}
+            </span>
+          ))
+        }
+      </h1>
+
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/#work">View Case Studies</a>
+        <a class="btn btn-secondary" href="/#contact">Let's Talk</a>
+      </div>
+    </div>
+
+    <div class="hero-aside">
+      <DossierCard />
+    </div>
+  </div>
+
+  <div class="scroll-hint" aria-hidden="true">
+    <span class="mono">Scroll</span>
+    <span class="scroll-line"></span>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding-block: 9.5rem 5rem;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .hero-inner {
+    width: 100%;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding-inline: var(--gutter);
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: center;
+    gap: 4rem;
+  }
+
+  /* --- headline --------------------------------------------------------- */
+
+  .headline {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.32em;
+    row-gap: 0.06em;
+    font-size: clamp(2rem, 4.6vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+    max-width: 20ch;
+  }
+
+  .word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(46px) rotate(3deg);
+    animation: wordBounce 0.7s var(--ease-spring) forwards;
+    animation-delay: calc(var(--i) * 45ms + 120ms);
+  }
+
+  /* Two softened bounces rather than one hard settle — reads calmer on a
+     light surface than the original's single spring. */
+  @keyframes wordBounce {
+    0% {
+      opacity: 0;
+      transform: translateY(46px) rotate(3deg);
+    }
+    62% {
+      opacity: 1;
+      transform: translateY(-6px) rotate(-0.8deg);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) rotate(0);
+    }
+  }
+
+  .word.accent {
+    font-style: italic;
+    color: var(--red);
+  }
+
+  /* --- ctas ------------------------------------------------------------- */
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.7s var(--ease-out) forwards;
+    animation-delay: calc(19 * 45ms + 220ms);
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* --- aside ------------------------------------------------------------ */
+
+  .hero-aside {
+    opacity: 0;
+    animation: fadeUp 0.9s var(--ease-out) forwards;
+    animation-delay: 0.45s;
+  }
+
+  /* --- scroll hint ------------------------------------------------------ */
+
+  .scroll-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 2rem;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .scroll-hint .mono {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 46px;
+    background: var(--red);
+    transform-origin: top;
+    animation: scrollPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%,
+    100% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scaleY(0.3);
+      opacity: 0.35;
+    }
+  }
+
+  /* --- responsive ------------------------------------------------------- */
+
+  @media (max-width: 980px) {
+    .hero {
+      padding-block: 8rem 4rem;
+      min-height: auto;
+    }
+
+    .hero-inner {
+      grid-template-columns: 1fr;
+      gap: 3.5rem;
+    }
+
+    .headline {
+      max-width: 24ch;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .scroll-hint {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .headline {
+      column-gap: 0.26em;
+      font-size: clamp(1.75rem, 8.5vw, 2.4rem);
+    }
+
+    .cta-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .cta-row .btn {
+      justify-content: center;
+    }
+  }
+</style>
