@@ -1,0 +1,284 @@
+---
+// Split-flap role board, ported from the React Bits SplitFlapText component to
+// vanilla. Ported rather than installed because the original is a React island:
+// shipping React to render a decoration contradicts the site's zero-JS-by-default
+// architecture, and a build-time render means these roles are real HTML in the
+// page source — crawlable, and visible before any script runs.
+//
+// The board is padded to the longest role so its width never jumps mid-cycle,
+// which is how a real departure board behaves.
+
+const roles = [
+  'Full-Stack Developer',
+  'Web3 Developer',
+  'AI Developer',
+  'Software Developer',
+  'Frontend Developer',
+  'Product Developer',
+];
+
+const width = Math.max(...roles.map((role) => role.length));
+const pad = (value: string) => value.padEnd(width, ' ').slice(0, width);
+const initialTiles = pad(roles[0]).split('');
+---
+
+<div class="flap-block">
+  {/* Tiles are aria-hidden: the animated board is decorative. The roles are
+      exposed once, in reading order, by the visually-hidden line below —
+      otherwise a screen reader either hears a rapid-fire accessible name or
+      nothing at all. */}
+  <div class="flap" data-flap data-roles={JSON.stringify(roles)} aria-hidden="true">
+    {
+      initialTiles.map((char) => (
+        <span class="flap-tile">
+          <span class="flap-half flap-half--top">
+            <span class="flap-char">{char === ' ' ? ' ' : char}</span>
+          </span>
+          <span class="flap-half flap-half--bottom">
+            <span class="flap-char">{char === ' ' ? ' ' : char}</span>
+          </span>
+
+          <span class="flap-flap flap-flap--front">
+            <span class="flap-char">{char === ' ' ? ' ' : char}</span>
+          </span>
+          <span class="flap-flap flap-flap--back">
+            <span class="flap-char">{char === ' ' ? ' ' : char}</span>
+          </span>
+        </span>
+      ))
+    }
+  </div>
+
+  <span class="sr-only">{roles.join(', ')}.</span>
+</div>
+
+<style>
+  .flap-block {
+    position: relative;
+  }
+
+  /* --- board ------------------------------------------------------------ */
+
+  .flap {
+    /* Dark tiles on the warm paper base — the one high-contrast object in the
+       hero, which is deliberate: the roles are the message. Flip these two
+       tokens to invert the board. */
+    --flap-tile: var(--ink);
+    --flap-text: var(--surface);
+    --flap-dur: 0.12s;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.12em;
+    font-family: var(--font-mono);
+    /* Sized off the padded tile count (20), not the longest word: the board is
+       a fixed width, so type size is what has to give on narrow screens. */
+    font-size: clamp(0.8rem, 3.4vw, 1.5rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    white-space: pre;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .flap-tile {
+    position: relative;
+    width: 0.78em;
+    height: 1.08em;
+    overflow: hidden;
+    border-radius: 0.16em;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.16), transparent 44%),
+      linear-gradient(180deg, color-mix(in srgb, var(--flap-tile) 82%, white), var(--flap-tile));
+    box-shadow:
+      0 0.035em 0.08em rgba(255, 255, 255, 0.08) inset,
+      0 -0.05em 0.1em rgba(0, 0, 0, 0.38) inset,
+      0 0.16em 0.38em rgba(0, 0, 0, 0.28);
+    perspective: 520px;
+    transform-style: preserve-3d;
+    isolation: isolate;
+  }
+
+  /* Hinge line between the two halves. */
+  .flap-tile::before {
+    content: '';
+    position: absolute;
+    z-index: 8;
+    top: calc(50% - 0.5px);
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.18) 18%,
+      rgba(0, 0, 0, 0.64) 50%,
+      rgba(255, 255, 255, 0.14) 82%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .flap-tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: inherit;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) inset;
+    pointer-events: none;
+  }
+
+  /* --- halves and flaps ------------------------------------------------- */
+
+  .flap-half,
+  .flap-flap {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 34%),
+      var(--flap-tile);
+    backface-visibility: hidden;
+  }
+
+  .flap-half--top,
+  .flap-flap--front {
+    top: 0;
+  }
+
+  .flap-half--bottom,
+  .flap-flap--back {
+    bottom: 0;
+  }
+
+  .flap-half--bottom,
+  .flap-flap--back {
+    background:
+      linear-gradient(0deg, rgba(255, 255, 255, 0.06), transparent 38%),
+      color-mix(in srgb, var(--flap-tile) 92%, black);
+  }
+
+  .flap-char {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--flap-text);
+    text-shadow:
+      0 0.025em 0 rgba(255, 255, 255, 0.16),
+      0 0.09em 0.16em rgba(0, 0, 0, 0.42);
+  }
+
+  .flap-half--top .flap-char,
+  .flap-flap--front .flap-char {
+    top: 0;
+  }
+
+  .flap-half--bottom .flap-char,
+  .flap-flap--back .flap-char {
+    bottom: 0;
+  }
+
+  /* The moving flaps live in the DOM from the start, inert, so Astro's scoped
+     styles apply to them — elements created in JS would miss the scope
+     attribute. main.js reveals them with .is-flipping, which also restarts the
+     keyframes, since re-adding a class after a reflow replays a CSS animation. */
+  .flap-flap {
+    z-index: 6;
+    opacity: 0;
+    will-change: transform, filter;
+    transform-style: preserve-3d;
+  }
+
+  .flap-flap--front {
+    transform-origin: center bottom;
+  }
+
+  .flap-flap--back {
+    transform-origin: center top;
+    transform: rotateX(90deg);
+  }
+
+  .flap-flap.is-flipping {
+    opacity: 1;
+    animation-duration: var(--flap-dur);
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+    animation-fill-mode: both;
+  }
+
+  .flap-flap--front.is-flipping {
+    animation-name: flapFront;
+  }
+
+  .flap-flap--back.is-flipping {
+    animation-name: flapBack;
+  }
+
+  @keyframes flapFront {
+    0% {
+      transform: rotateX(0deg);
+      filter: brightness(1.08);
+    }
+    100% {
+      transform: rotateX(-90deg);
+      filter: brightness(0.52);
+    }
+  }
+
+  @keyframes flapBack {
+    0%,
+    45% {
+      transform: rotateX(90deg);
+      filter: brightness(0.58);
+    }
+    100% {
+      transform: rotateX(0deg);
+      filter: brightness(1);
+    }
+  }
+
+  /* --- reduced motion --------------------------------------------------- */
+
+  /* main.js swaps characters without flipping when motion is reduced, so this
+     is belt-and-braces for anything that slips through. */
+  @media (prefers-reduced-motion: reduce) {
+    .flap-flap,
+    .flap-flap.is-flipping {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
+  /* --- screen-reader text ----------------------------------------------- */
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* --- responsive ------------------------------------------------------- */
+
+  /* Below the two-column breakpoint the board gets the full content width, so
+     it can afford slightly larger type than the vw term alone allows. */
+  @media (max-width: 640px) {
+    .flap {
+      font-size: clamp(0.72rem, 3.6vw, 1rem);
+      gap: 0.1em;
+    }
+  }
+</style>

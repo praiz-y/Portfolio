@@ -1,47 +1,36 @@
 ---
 import DossierCard from './DossierCard.astro';
+import SplitFlap from './SplitFlap.astro';
 
-// Locked positioning statement. Split into tokens so the Real1 word-by-word
-// bounce-in can drive each word from a single --i custom property rather than
-// the hardcoded nth-child delays the original used.
-const headline = [
-  { t: 'I' },
-  { t: 'build' },
-  { t: 'scalable' },
-  { t: 'web' },
-  { t: 'applications,' },
-  { t: 'AI-powered' },
-  { t: 'systems,' },
-  { t: 'and' },
-  { t: 'decentralized' },
-  { t: 'blockchain', accent: true },
-  { t: 'solutions', accent: true },
-  { t: '—' },
-  { t: 'from' },
-  { t: 'React' },
-  { t: 'interfaces' },
-  { t: 'to' },
-  { t: 'Solidity' },
-  { t: 'smart' },
-  { t: 'contracts.' },
-];
+// The name is the display line now (TechText is on hold), so the hero's <h1> is
+// the name and the positioning copy moves into the lede under the role board.
+// Kept as tokens so the Real1 word-bounce still drives each word off one --i.
+const name = ['Praise', 'Oga'];
 ---
 
 <section class="hero" id="top">
   <div class="hero-inner">
     <div class="hero-content">
-      <h1 class="headline">
+      <h1 class="hero-name">
         {
-          headline.map((word, i) => (
-            <span
-              class:list={['word', word.accent && 'accent']}
-              style={`--i:${i}`}
-            >
-              {word.t}
+          name.map((word, i) => (
+            <span class="word" style={`--i:${i}`}>
+              {word}
             </span>
           ))
         }
       </h1>
+
+      <div class="hero-role">
+        <SplitFlap />
+      </div>
+
+      <p class="lede">
+        I like taking ideas that start out vague and turning them into products
+        that <em>actually work</em>, figuring out the interface, the systems
+        behind it, and everything in between. I build across full-stack web, AI,
+        and Web3, following the problem wherever it leads.
+      </p>
 
       <div class="cta-row">
         <a class="btn btn-primary" href="/#work">View Case Studies</a>
@@ -76,23 +65,22 @@ const headline = [
     margin: 0 auto;
     padding-inline: var(--gutter);
     display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
+    grid-template-columns: 1.1fr 0.9fr;
     align-items: center;
     gap: 4rem;
   }
 
-  /* --- headline --------------------------------------------------------- */
+  /* --- name ------------------------------------------------------------- */
 
-  .headline {
+  .hero-name {
     display: flex;
     flex-wrap: wrap;
-    column-gap: 0.32em;
-    row-gap: 0.06em;
-    font-size: clamp(2rem, 4.6vw, 3.4rem);
+    column-gap: 0.28em;
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 7vw, 4.6rem);
     font-weight: 600;
-    line-height: 1.14;
-    letter-spacing: -0.02em;
-    max-width: 20ch;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
   }
 
   .word {
@@ -100,7 +88,7 @@ const headline = [
     opacity: 0;
     transform: translateY(46px) rotate(3deg);
     animation: wordBounce 0.7s var(--ease-spring) forwards;
-    animation-delay: calc(var(--i) * 45ms + 120ms);
+    animation-delay: calc(var(--i) * 80ms + 80ms);
   }
 
   /* Two softened bounces rather than one hard settle — reads calmer on a
@@ -120,8 +108,31 @@ const headline = [
     }
   }
 
-  .word.accent {
+  /* --- role board ------------------------------------------------------- */
+
+  .hero-role {
+    margin-top: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.7s var(--ease-out) forwards;
+    animation-delay: 340ms;
+  }
+
+  /* --- lede ------------------------------------------------------------- */
+
+  .lede {
+    margin-top: 1.75rem;
+    max-width: 46ch;
+    font-size: clamp(1rem, 1.5vw, 1.12rem);
+    line-height: 1.65;
+    color: var(--ink-dim);
+    opacity: 0;
+    animation: fadeUp 0.7s var(--ease-out) forwards;
+    animation-delay: 460ms;
+  }
+
+  .lede em {
     font-style: italic;
+    font-weight: 600;
     color: var(--red);
   }
 
@@ -131,10 +142,10 @@ const headline = [
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 2.5rem;
+    margin-top: 2.25rem;
     opacity: 0;
     animation: fadeUp 0.7s var(--ease-out) forwards;
-    animation-delay: calc(19 * 45ms + 220ms);
+    animation-delay: 600ms;
   }
 
   @keyframes fadeUp {
@@ -153,7 +164,7 @@ const headline = [
   .hero-aside {
     opacity: 0;
     animation: fadeUp 0.9s var(--ease-out) forwards;
-    animation-delay: 0.45s;
+    animation-delay: 0.5s;
   }
 
   /* --- scroll hint ------------------------------------------------------ */
@@ -206,10 +217,6 @@ const headline = [
       grid-template-columns: 1fr;
       gap: 3.5rem;
     }
-
-    .headline {
-      max-width: 24ch;
-    }
   }
 
   @media (max-width: 900px) {
@@ -219,9 +226,8 @@ const headline = [
   }
 
   @media (max-width: 480px) {
-    .headline {
-      column-gap: 0.26em;
-      font-size: clamp(1.75rem, 8.5vw, 2.4rem);
+    .hero-name {
+      column-gap: 0.22em;
     }
 
     .cta-row {
@@ -231,6 +237,18 @@ const headline = [
 
     .cta-row .btn {
       justify-content: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .word,
+    .hero-role,
+    .lede,
+    .cta-row,
+    .hero-aside {
+      animation: none;
+      opacity: 1;
+      transform: none;
     }
   }
 </style>

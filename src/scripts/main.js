@@ -292,6 +292,225 @@ function initRail() {
   });
 }
 
+/* -------------------------------------------------------------------------
+   Split-flap role board
+   ------------------------------------------------------------------------- */
+
+function initSplitFlap() {
+  const board = document.querySelector('[data-flap]');
+  if (!board) return;
+
+  let roles;
+  try {
+    roles = JSON.parse(board.dataset.roles || '[]');
+  } catch {
+    // Malformed attribute: leave the build-rendered first role on screen.
+    return;
+  }
+  if (!Array.isArray(roles) || roles.length < 2) return;
+
+  const tiles = Array.from(board.querySelectorAll('.flap-tile'));
+  if (!tiles.length) return;
+
+  const FLIP_MS = 120; // keep in step with --flap-dur on .flap
+  const STAGGER_MS = 55;
+  const HOLD_MS = 2400;
+  const FLIPS_PER_CHAR = 8;
+  const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  const width = tiles.length;
+
+  const pad = (value) => String(value).padEnd(width, ' ').slice(0, width);
+  const glyph = (char) => (char === ' ' ? ' ' : char);
+  const sample = () => CHARSET[Math.floor(Math.random() * CHARSET.length)];
+
+  let current = pad(roles[0]);
+  let phraseIndex = 0;
+  let rafId = 0;
+  let cycleId = 0;
+  let running = false;
+  let inView = false;
+
+  const parts = (tile) => ({
+    top: tile.querySelector('.flap-half--top .flap-char'),
+    bottom: tile.querySelector('.flap-half--bottom .flap-char'),
+    front: tile.querySelector('.flap-flap--front'),
+    back: tile.querySelector('.flap-flap--back'),
+  });
+
+  /** Show `from` on the outgoing flap and `to` on the incoming one. */
+  function flipTile(tile, from, to) {
+    const { top, bottom, front, back } = parts(tile);
+    if (!top || !bottom || !front || !back) return;
+
+    top.textContent = glyph(from);
+    bottom.textContent = glyph(to);
+    front.firstElementChild.textContent = glyph(from);
+    back.firstElementChild.textContent = glyph(to);
+
+    // Reading offsetWidth forces a reflow, and that reflow is what lets the CSS
+    // animation replay. Affordable here: only tiles whose character actually
+    // changed run this, and the board then sits still for HOLD_MS.
+    front.classList.remove('is-flipping');
+    back.classList.remove('is-flipping');
+    void tile.offsetWidth;
+    front.classList.add('is-flipping');
+    back.classList.add('is-flipping');
+  }
+
+  /** Park both halves on `char` and drop the moving flaps. */
+  function settle(tile, char) {
+    const { top, bottom, front, back } = parts(tile);
+    if (top) top.textContent = glyph(char);
+    if (bottom) bottom.textContent = glyph(char);
+    front?.classList.remove('is-flipping');
+    back?.classList.remove('is-flipping');
+  }
+
+  function swapInstant(target) {
+    pad(target)
+      .split('')
+      .forEach((char, i) => settle(tiles[i], char));
+    current = pad(target);
+  }
+
+  function animateTo(target) {
+    const from = current;
+    const chars = pad(target).split('');
+
+    // Only differing tiles flip, each starting STAGGER_MS after the one to its
+    // left — that cascade is what reads as a mechanical board rather than a
+    // character swap.
+    const plans = [];
+    chars.forEach((char, i) => {
+      if (from[i] === char) return;
+      const sequence = [];
+      for (let s = 0; s < FLIPS_PER_CHAR; s += 1) sequence.push(sample());
+      sequence.push(char);
+      plans.push({ index: i, from: from[i], sequence, start: i * STAGGER_MS, last: -1, done: false });
+    });
+
+    if (!plans.length) {
+      current = pad(target);
+      return 0;
+    }
+
+    const duration = plans.reduce(
+      (max, plan) => Math.max(max, plan.start + plan.sequence.length * FLIP_MS),
+      0
+    );
+    const startedAt = performance.now();
+
+    function frame(now) {
+      if (!running) return;
+      const elapsed = now - startedAt;
+      let active = false;
+
+      plans.forEach((plan) => {
+        const local = elapsed - plan.start;
+        if (local < 0) {
+          active = true;
+          return;
+        }
+
+        const stepIndex = Math.floor(local / FLIP_MS);
+
+        if (stepIndex >= plan.sequence.length) {
+          // The cascade is over for this tile. Without this the tile keeps the
+          // last random glyph on its top half forever: flipTile only ever moves
+          // the bottom half to the target, so something has to write the settled
+          // character back to both.
+          if (!plan.done) {
+            plan.done = true;
+            settle(tiles[plan.index], plan.sequence[plan.sequence.length - 1]);
+          }
+          return;
+        }
+
+        active = true;
+        if (stepIndex === plan.last) return;
+        plan.last = stepIndex;
+        flipTile(
+          tiles[plan.index],
+          stepIndex === 0 ? plan.from : plan.sequence[stepIndex - 1],
+          plan.sequence[stepIndex]
+        );
+      });
+
+      if (active) {
+        rafId = requestAnimationFrame(frame);
+      } else {
+        current = pad(target);
+        rafId = 0;
+      }
+    }
+
+    rafId = requestAnimationFrame(frame);
+    return duration;
+  }
+
+  function schedule(delay) {
+    cycleId = setTimeout(() => {
+      if (!running) return;
+      phraseIndex = (phraseIndex + 1) % roles.length;
+
+      let duration = 0;
+      if (prefersReducedMotion) {
+        // Reduced motion means no flap cascade, not less information: the roles
+        // still cycle, they just cut instead of flipping.
+        swapInstant(roles[phraseIndex]);
+      } else {
+        duration = animateTo(roles[phraseIndex]);
+      }
+
+      schedule(HOLD_MS + duration);
+    }, delay);
+  }
+
+  function start() {
+    if (running) return;
+    running = true;
+    schedule(HOLD_MS);
+  }
+
+  function stop() {
+    running = false;
+    clearTimeout(cycleId);
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = 0;
+
+    // An interruption mid-cascade leaves tiles holding random glyphs while
+    // `current` still describes the previous phrase — and the next plan only
+    // flips tiles that *differ* between phrases, so scrambled ones it considers
+    // unchanged would stay scrambled. Put the board back in agreement with
+    // `current` instead.
+    current.split('').forEach((char, i) => settle(tiles[i], char));
+  }
+
+  // rAF doesn't fire in a hidden tab, which would freeze a cascade half-done and
+  // let the next cycle timer land on top of it. Same reasoning for a hero that's
+  // been scrolled past.
+  function sync() {
+    if (inView && !document.hidden) start();
+    else stop();
+  }
+
+  document.addEventListener('visibilitychange', sync);
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        sync();
+      },
+      { threshold: 0 }
+    ).observe(board);
+  } else {
+    inView = true;
+    sync();
+  }
+}
+
 /* ------------------------------------------------------------------------- */
 
 function init() {
@@ -300,6 +519,7 @@ function init() {
   initReveal();
   initHeader();
   initRail();
+  initSplitFlap();
 }
 
 if (document.readyState === 'loading') {
